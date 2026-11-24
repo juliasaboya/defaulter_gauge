@@ -42,7 +42,9 @@ def index():
         with ui.column().classes('panel gap-4'):
             ui.label('Histórico de três meses').classes('text-2xl font-bold')
             ui.label('Informe todos os valores em dólares taiwaneses (NT$), a moeda da base de treinamento.')
-            fields = {'LIMIT_BAL': ui.number('Limite do cartão (NT$)', format='%.2f').props('outlined')}
+            fields: dict[str, ui.number | ui.select] = {
+                'LIMIT_BAL': ui.number('Limite do cartão (NT$)', format='%.2f').props('outlined'),
+            }
             with ui.element('div').classes('months'):
                 for label, status, bill, paid in zip(
                     ['Mais antigo', 'Intermediário', 'Mais recente'], STATUS, BILLS, PAYMENTS
