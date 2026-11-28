@@ -9,6 +9,8 @@ import requests
 import xlrd
 from ucimlrepo import fetch_ucirepo
 
+from .features import BILL, DELAY, LIMIT, PAID
+
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / 'data' / 'credit_card_clients.csv'
 URL = 'https://archive.ics.uci.edu/static/public/350/default+of+credit+card+clients.zip'
@@ -20,6 +22,18 @@ PREDICTORS = [
     *[f'BILL_AMT{i}' for i in range(1, 7)],
     *[f'PAY_AMT{i}' for i in range(1, 7)],
 ]
+
+
+STATUS = ('PAY_3', 'PAY_2', 'PAY_0')
+BILLS = ('BILL_AMT3', 'BILL_AMT2', 'BILL_AMT1')
+PAYMENTS = ('PAY_AMT3', 'PAY_AMT2', 'PAY_AMT1')
+INPUTS = ['LIMIT_BAL', *STATUS, *BILLS, *PAYMENTS]
+UCI_HISTORY = dict(zip(INPUTS, (LIMIT, *DELAY, *BILL, *PAID)))
+
+
+def uci_history(frame: pd.DataFrame) -> pd.DataFrame:
+    """Mapeia julho, agosto e setembro para mês 1, 2 e 3 do histórico."""
+    return frame.loc[:, INPUTS].rename(columns=UCI_HISTORY)
 
 
 def validate(frame: pd.DataFrame) -> pd.DataFrame:
