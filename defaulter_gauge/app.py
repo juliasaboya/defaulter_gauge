@@ -1,17 +1,28 @@
 """Interface local do Defaulter Gauge."""
 import json
+import math
+import re
+import sys
 from functools import lru_cache
+from pathlib import Path
 
 import joblib
 from nicegui import ui
 
-from .model import ARTIFACT, BILLS, METRICS, PAYMENTS, STATUS, predict
+if __name__ == '__main__' and not __package__:
+    # Permite executar este arquivo diretamente pelo IDE.
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from defaulter_gauge.data import BILLS, PAYMENTS, STATUS
+from defaulter_gauge.model import ARTIFACT, METRICS, predict
 
 DELAYS = {
     0: 'Sem atraso',
     **{month: f'{month} mês' if month == 1 else f'{month} meses' for month in range(1, 9)},
     9: '9 meses ou mais',
 }
+MONEY_PATTERN = re.compile(r'-?(?:[0-9]+|[0-9]{1,3}(?:\.[0-9]{3})+)(?:,[0-9]{1,2})?')
+BRAZILIAN_SEPARATORS = str.maketrans(',.', '.,')
 
 STYLE = """
 <style>
@@ -31,6 +42,32 @@ def load_model():
     return joblib.load(ARTIFACT)
 
 
+def parse_money(value: str) -> float:
+    value = value.strip()
+    if not MONEY_PATTERN.fullmatch(value):
+        raise ValueError('Use o formato brasileiro nos valores financeiros, como 1.234,56.')
+    result = float(value.replace('.', '').replace(',', '.'))
+    if not math.isfinite(result):
+        raise ValueError('Preencha todos os campos com números finitos.')
+    return result
+
+
+def money_field(label: str) -> ui.input:
+    field = ui.input(label, prefix='R$').props('outlined inputmode=decimal').classes('w-full')
+
+    def format_on_blur():
+        if not field.value.strip():
+            return
+        try:
+            value = parse_money(field.value)
+        except ValueError:
+            return
+        field.set_value(f'{value:,.2f}'.translate(BRAZILIAN_SEPARATORS))
+
+    field.on('blur', format_on_blur)
+    return field
+
+
 def index():
     ui.add_head_html(STYLE)
     ui.colors(primary='#146c5c')
@@ -41,31 +78,37 @@ def index():
 
         with ui.column().classes('panel gap-4'):
             ui.label('Histórico de três meses').classes('text-2xl font-bold')
-            ui.label('Informe todos os valores em dólares taiwaneses (NT$), a moeda da base de treinamento.')
-            fields: dict[str, ui.number | ui.select] = {
-                'LIMIT_BAL': ui.number('Limite do cartão (NT$)', format='%.2f').props('outlined'),
+            ui.label('Informe os valores financeiros dos últimos três meses em reais (R$).')
+            fields: dict[str, ui.input | ui.select] = {
+                'LIMIT_BAL': money_field('Limite do cartão'),
             }
             with ui.element('div').classes('months'):
                 for label, status, bill, paid in zip(
-                    ['Mais antigo', 'Intermediário', 'Mais recente'], STATUS, BILLS, PAYMENTS
+                    ['Há 3 meses', 'Há 2 meses', 'Último mês'], STATUS, BILLS, PAYMENTS
                 ):
                     with ui.column().classes('month gap-3'):
                         ui.label(label).classes('font-bold text-base')
-                        fields[bill] = ui.number('Valor da fatura', format='%.2f').props('outlined').classes('w-full')
-                        fields[paid] = ui.number('Valor pago', format='%.2f').props('outlined').classes('w-full')
+                        fields[bill] = money_field('Valor da fatura')
+                        fields[paid] = money_field('Valor pago')
                         fields[status] = ui.select(DELAYS, label='Atraso naquele mês').props('outlined').classes('w-full')
             for name, field in fields.items():
                 field.mark(name)
-            ui.label('Informe zero se não houve pagamento. Use fatura negativa para saldo credor.').classes('text-sm')
+            ui.label(
+                'Registre o valor pago no mês em que o pagamento foi feito. '
+                'Informe zero se não houve pagamento e use fatura negativa para saldo credor.'
+            ).classes('text-sm')
 
             def calculate():
                 result.set_visibility(False)
                 error.set_text('')
-                values = {key: element.value for key, element in fields.items()}
-                if any(value is None for value in values.values()):
+                if any(field.value is None or field.value == '' for field in fields.values()):
                     error.set_text('Preencha todos os campos antes de calcular.')
                     return
                 try:
+                    values = {
+                        name: parse_money(field.value) if isinstance(field, ui.input) else field.value
+                        for name, field in fields.items()
+                    }
                     probability = predict(load_model(), values)
                 except (TypeError, ValueError) as exc:
                     error.set_text(str(exc))
@@ -76,7 +119,10 @@ def index():
 
             def clear():
                 for field in fields.values():
-                    field.set_value(None)
+                    if isinstance(field, ui.input):
+                        field.set_value('')
+                    else:
+                        field.set_value(None)
                 error.set_text('')
                 result.set_visibility(False)
 
@@ -99,7 +145,11 @@ def index():
         result.set_visibility(False)
 
         with ui.expansion('Sobre o modelo e a avaliação').classes('panel'):
-            ui.label('Experimento acadêmico com Gaussian Naive Bayes calibrado. A base reúne clientes de cartão de Taiwan em 2005. As estimativas se referem a esse contexto e servem à demonstração acadêmica.')
+            ui.label(
+                'Experimento acadêmico com Naive Bayes calibrado e indicadores proporcionais. '
+                'A base reúne clientes de cartão de Taiwan em 2005. '
+                'A aplicação ainda não tem validação externa para a população brasileira.'
+            )
             if METRICS.is_file():
                 summary = json.loads(METRICS.read_text(encoding='utf-8'))
                 model_metrics = summary['models']['naive_bayes']
