@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Cartilha e glossário do Defaulter Gauge sobre crédito, atributos e avaliação do modelo.">
+  <title>Cartilha de crédito e risco | Defaulter Gauge</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="glossario.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#conteudo">Ir para o conteúdo</a>
+  <header class="top">
+    <div class="wrap bar">
+      <a class="brand" href="#inicio">Defaulter Gauge</a>
+      <nav aria-label="Navegação principal">
+        <a href="#cartilha">Cartilha</a>
+        <a href="#glossario">Glossário</a>
+        <a href="#avaliacao">Avaliação</a>
+      </nav>
+    </div>
+  </header>
+  <main id="conteudo">
+    <section class="hero" id="inicio" aria-labelledby="titulo">
+      <div class="wrap hero-inner">
+        <div>
+          <h1 id="titulo">Cartilha de crédito e risco</h1>
+          <p>Aprenda como o Defaulter Gauge transforma faturas, pagamentos e atrasos em uma estimativa de inadimplência para o mês seguinte.</p>
+          <a class="button" href="#glossario">Consultar glossário</a>
+        </div>
+        <figure class="example">
+          <figcaption>Exemplo de utilização do limite</figcaption>
+          <div class="formula">R$ 4.000 ÷ R$ 5.000 <strong>80%</strong></div>
+          <div class="meter" aria-hidden="true"><span></span></div>
+          <p>Fatura dividida pelo limite disponível no cartão.</p>
+        </figure>
+      </div>
+    </section>
+    <section class="wrap section" id="cartilha" aria-labelledby="guia">
+      <h2 id="guia">Como a previsão funciona</h2>
+      <div class="chapters">
+        <article>
+          <h3>Preencha o histórico</h3>
+          <p>Informe o limite e, para cada um dos três meses, a fatura, o pagamento efetuado naquele mês e o atraso. Use zero se não houve pagamento e fatura negativa para saldo credor.</p>
+        </article>
+        <article>
+          <h3>Compare proporções</h3>
+          <p>R$ 4.000 sobre R$ 5.000 equivale a NT$ 24.000 sobre NT$ 30.000 em utilização: 80%. Se todo o histórico financeiro for multiplicado pelo mesmo fator positivo, as proporções permanecem iguais.</p>
+        </article>
+        <article>
+          <h3>Interprete o risco</h3>
+          <p>A porcentagem estima o risco para o próximo mês. O modelo final usa cinco indicadores de utilização e atraso. Indicadores de pagamento fizeram parte dos experimentos.</p>
+        </article>
+      </div>
+    </section>
+    <section class="glossary section" id="glossario" aria-labelledby="dicionario">
+      <div class="wrap">
+        <h2 id="dicionario">Glossário</h2>
+        <div class="filters" id="filtros" hidden>
+          <div>
+            <label for="busca">Buscar palavra ou expressão</label>
+            <input type="search" id="busca" placeholder="Ex.: fatura, atraso, recall" autocomplete="off">
+          </div>
+          <div>
+            <label for="categoria">Categoria</label>
+            <select id="categoria">
+              <option value="">Todas</option>
+              <option value="credito">Crédito</option>
+              <option value="atributos">Atributos</option>
+              <option value="modelo">Modelo e avaliação</option>
+            </select>
+          </div>
+        </div>
+        <p class="status" id="status" role="status"></p>
+        <!-- Para adicionar um termo, copie uma entrada e mantenha o id único. -->
+        <dl class="entries" id="termos">
+          <div class="entry" id="acuracia" data-category="modelo"><dt>Acurácia</dt><dd>Parcela de classificações corretas. Em uma base com poucos casos de inadimplência, pode ser alta mesmo quando o modelo identifica poucos deles.</dd></div>
+          <div class="entry" id="acuracia-balanceada" data-category="modelo"><dt>Acurácia balanceada</dt><dd>Média entre o percentual de inadimplentes identificados e o percentual de clientes adimplentes classificados corretamente.</dd></div>
+          <div class="entry" id="atraso" data-category="credito"><dt>Atraso</dt><dd>Histórico de pagamento em atraso registrado para cada mês. No projeto, códigos de −2 a 0 são agrupados como zero meses de atraso.</dd></div>
+          <div class="entry" id="average-precision" data-category="modelo"><dt>Average precision (AP)</dt><dd>Resume precisão e recall ao variar o limiar, dando peso às mudanças de recall. A AP média no desenvolvimento foi o critério principal de seleção do modelo.</dd></div>
+          <div class="entry" id="brier" data-category="modelo"><dt>Brier</dt><dd>Média do quadrado da diferença entre a probabilidade estimada e o desfecho observado, codificado como 0 ou 1. Valores menores indicam previsões probabilísticas mais próximas dos desfechos observados.</dd></div>
+          <div class="entry" id="calibracao" data-category="modelo"><dt>Calibração</dt><dd>Ajuste das probabilidades para aproximá-las das frequências observadas. Por exemplo, entre casos previstos em torno de 20%, espera-se uma frequência observada próxima de 20% em uma amostra comparável.</dd></div>
+          <div class="entry" id="categorical-nb" data-category="modelo"><dt>Categorical Naive Bayes</dt><dd>Modelo que estima a frequência de cada categoria de um atributo dentro de cada classe. No projeto, proporções são discretizadas e os meses de atraso mantêm seus códigos inteiros.</dd></div>
+          <div class="entry" id="cobertura" data-category="atributos"><dt>Cobertura da fatura</dt><dd>Pagamento dividido pela fatura positiva do mês anterior. Se o pagamento for R$ 250 e a fatura anterior for R$ 1.000, a cobertura é de 25%. Essa proporção foi avaliada nos experimentos.</dd></div>
+          <div class="entry" id="discretizacao" data-category="atributos"><dt>Discretização</dt><dd>Transformação de valores contínuos em faixas. Os cortes das proporções são aprendidos no treino.</dd></div>
+          <div class="entry" id="f1" data-category="modelo"><dt>F1-score</dt><dd>Média harmônica entre precisão e recall. Ela diminui quando uma dessas métricas é baixa.</dd></div>
+          <div class="entry" id="fatura" data-category="credito"><dt>Fatura</dt><dd>Valor registrado do cartão para um mês. Uma fatura negativa representa saldo credor.</dd></div>
+          <div class="entry" id="gaussian-nb" data-category="modelo"><dt>Gaussian Naive Bayes</dt><dd>Variante que modela a distribuição de cada atributo contínuo dentro de cada classe como uma distribuição normal. Foi usada no modelo anterior e nos experimentos.</dd></div>
+          <div class="entry" id="inadimplencia" data-category="credito"><dt>Inadimplência</dt><dd>No projeto, é o desfecho registrado pela base UCI para o mês seguinte ao histórico usado na previsão.</dd></div>
+          <div class="entry" id="independencia-monetaria" data-category="atributos"><dt>Independência monetária</dt><dd>Propriedade pela qual reescalar todos os valores monetários pelo mesmo fator positivo preserva os indicadores do modelo. A validade em outra população exige avaliação própria.</dd></div>
+          <div class="entry" id="limiar" data-category="modelo"><dt>Limiar de classificação</dt><dd>Probabilidade a partir da qual o modelo classifica o caso como positivo. Na avaliação do projeto, o limiar é 0,5.</dd></div>
+          <div class="entry" id="limite" data-category="credito"><dt>Limite do cartão</dt><dd>Valor de crédito concedido para o cartão. O limite precisa ser positivo porque serve de denominador para razões como fatura/limite.</dd></div>
+          <div class="entry" id="matriz-confusao" data-category="modelo"><dt>Matriz de confusão</dt><dd>Tabela com os quatro resultados possíveis da classificação: verdadeiros negativos, falsos positivos, falsos negativos e verdadeiros positivos.</dd></div>
+          <div class="entry" id="pagamento" data-category="credito"><dt>Pagamento</dt><dd>Valor pago no mês informado. Nas razões de cobertura, o projeto associa o pagamento à fatura do mês anterior, como aproximação do ciclo de cobrança.</dd></div>
+          <div class="entry" id="precisao" data-category="modelo"><dt>Precisão (precision)</dt><dd>Entre os casos classificados como inadimplentes, qual proporção realmente teve o desfecho.</dd></div>
+          <div class="entry" id="ratio" data-category="atributos"><dt>Razão (<code>_ratio</code>)</dt><dd>Divisão entre dois valores. A função <code>_ratio</code> divide quando o denominador é positivo, usa zero nos demais casos e limita o resultado ao intervalo de <code>-cap</code> a <code>cap</code>. Indicadores de cobertura sinalizam separadamente as faturas sem dívida.</dd></div>
+          <div class="entry" id="recall" data-category="modelo"><dt>Recall (sensibilidade)</dt><dd>Entre os clientes que realmente ficaram inadimplentes, qual proporção o modelo identificou.</dd></div>
+          <div class="entry" id="roc-auc" data-category="modelo"><dt>ROC-AUC</dt><dd>Mede quão bem o modelo ordena os casos positivos acima dos negativos ao considerar vários limiares. Um valor de 0,5 equivale ao desempenho de uma ordenação aleatória.</dd></div>
+          <div class="entry" id="sequencia-atrasos" data-category="atributos"><dt>Sequência de atrasos</dt><dd>Maior número de meses consecutivos com atraso. Em um histórico com atraso, sem atraso e atraso, a maior sequência é um mês.</dd></div>
+          <div class="entry" id="tendencia" data-category="atributos"><dt>Tendência de utilização</dt><dd>Variação média por intervalo entre o primeiro e o terceiro mês. O projeto calcula a diferença entre as duas razões de utilização dividida por dois.</dd></div>
+          <div class="entry" id="utilizacao" data-category="atributos"><dt>Utilização do limite</dt><dd>Razão entre a fatura de um mês e o limite. Pode ser negativa com saldo credor ou superar 100% quando a fatura excede o limite.</dd></div>
+        </dl>
+      </div>
+    </section>
+    <section class="wrap section evaluation" id="avaliacao" aria-labelledby="resultados">
+      <h2 id="resultados">Como ler a avaliação</h2>
+      <p>O Categorical Naive Bayes proporcional foi escolhido no conjunto de desenvolvimento. No teste histórico de 6.000 clientes, obteve:</p>
+      <dl class="scores">
+        <div><dt>Acurácia</dt><dd>79,18%</dd></div>
+        <div><dt>Recall a 0,5</dt><dd>29,92%</dd></div>
+        <div><dt>ROC-AUC</dt><dd>0,7320</dd></div>
+      </dl>
+      <aside>
+        <h3>Onde a evidência se aplica</h3>
+        <p>A avaliação usa dados históricos de Taiwan de 2005. O modelo tem finalidade acadêmica e ainda não passou por validação externa com a população brasileira.</p>
+      </aside>
+    </section>
+  </main>
+  <footer><div class="wrap bar"><span>Defaulter Gauge · documentação do projeto</span><a href="https://doi.org/10.24432/C55S3H">Base de dados UCI</a></div></footer>
+</body>
+</html>
